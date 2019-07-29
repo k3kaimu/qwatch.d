@@ -6,16 +6,16 @@ void main()
 {
     auto joblist = usersJobList();
     if(joblist.length < 10) {
-        writefln!"Your jobs:\n%-(\t%s\n%)"(joblist);
+        writefln!"# Your jobs:\n%-(\t%s\n%)"(joblist);
     } else {
-        writefln!"Your jobs: %s"(joblist.length);
+        writefln!"# Your jobs: %s"(joblist.length);
     }
     writeln();
 
 
     auto nodes = getNodesInfo().sort!"a.name < b.name"();
 
-    writeln("Used logical CPUs by your jobs:");
+    writeln("# Used logical CPUs by your jobs:");
     size_t totalCPUs;
     size_t totalNodes;
     foreach(n; nodes) {
@@ -28,7 +28,11 @@ void main()
     }
     writeln();
 
-    writefln!"Total: %s nodes and %s logical CPUs are used by your jobs."(totalNodes, totalCPUs);
+    writefln!"# Total: %s nodes and %s logical CPUs are used by your jobs."(totalNodes, totalCPUs);
+    writeln();
+
+    writeln("# qgroup -l:");
+    writeln(executeCommand(["qgroup", "-l"]));
 }
 
 
@@ -42,6 +46,7 @@ struct Node
 
     string name;
     size_t ncpus;
+    string queue;
     Slot[] slots;
 }
 
@@ -72,6 +77,10 @@ Node[] getNodesInfo()
 
         if(auto value = info.getFieldValue("resources_available.ncpus")) {
             node.ncpus = value.to!uint;
+        }
+
+        if(auto value = info.getFieldValue("queue")) {
+            node.queue = value;
         }
 
         nodeList ~= node;
